@@ -15,7 +15,7 @@ if [[ ! -f ".env" ]]; then
     exit 1
 fi
 
-backup_dir="${BACKUP_DIR:-${PROJECT_ROOT}/backups}"
+backup_dir="${BACKUP_DIR:-/DATA/AppData/yudilahne-app/backups}"
 retention_days="${BACKUP_RETENTION_DAYS:-7}"
 timestamp="$(date +%Y%m%d-%H%M%S)"
 backup_file="${backup_dir}/db-${timestamp}.sql.gz"

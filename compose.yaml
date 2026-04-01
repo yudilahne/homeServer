@@ -9,8 +9,8 @@ services:
       - .env
     volumes:
       - ./.env:/var/www/html/.env:ro
-      - laravel_storage:/var/www/html/storage
-      - laravel_cache:/var/www/html/bootstrap/cache
+      - ${LARAVEL_STORAGE_PATH:-/DATA/AppData/yudilahne-app/laravel_storage}:/var/www/html/storage
+      - ${LARAVEL_CACHE_PATH:-/DATA/AppData/yudilahne-app/laravel_cache}:/var/www/html/bootstrap/cache
     depends_on:
       db:
         condition: service_healthy
@@ -26,7 +26,7 @@ services:
     expose:
       - "80"
     volumes:
-      - laravel_storage:/var/www/html/storage
+      - ${LARAVEL_STORAGE_PATH:-/DATA/AppData/yudilahne-app/laravel_storage}:/var/www/html/storage
 
   db:
     image: mariadb:11.8
@@ -40,14 +40,9 @@ services:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
     volumes:
-      - mariadb_data:/var/lib/mysql
+      - ${MARIADB_DATA_PATH:-/DATA/AppData/yudilahne-app/mariadb_data}:/var/lib/mysql
     healthcheck:
       test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -uroot -p$$MARIADB_ROOT_PASSWORD --silent"]
       interval: 10s
       timeout: 5s
       retries: 10
-
-volumes:
-  laravel_storage:
-  laravel_cache:
-  mariadb_data:
