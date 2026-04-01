@@ -4,6 +4,7 @@ import '../models/stored_session.dart';
 import '../models/workspace_models.dart';
 import '../services/auth_service.dart';
 import '../services/mock_workspace_repository.dart';
+import '../services/workspace_repository.dart';
 
 class HomeShell extends StatefulWidget {
   const HomeShell({
@@ -21,14 +22,23 @@ class HomeShell extends StatefulWidget {
 
 class _HomeShellState extends State<HomeShell> {
   final MockWorkspaceRepository _repository = MockWorkspaceRepository();
+  final WorkspaceRepository _workspaceRepository = WorkspaceRepository();
   final AuthService _authService = AuthService();
-  late final WorkspaceSnapshot _snapshot;
+  late Future<WorkspaceSnapshot> _snapshotFuture;
   int _currentIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    _snapshot = _repository.load();
+    _snapshotFuture = _loadSnapshot();
+  }
+
+  Future<WorkspaceSnapshot> _loadSnapshot() async {
+    try {
+      return await _workspaceRepository.fetchSnapshot(widget.session);
+    } catch (_) {
+      return _repository.load();
+    }
   }
 
   Future<void> _logout() async {
@@ -41,15 +51,18 @@ class _HomeShellState extends State<HomeShell> {
     await widget.onLoggedOut();
   }
 
+  Future<void> _refresh() async {
+    final future = _loadSnapshot();
+
+    setState(() {
+      _snapshotFuture = future;
+    });
+
+    await future;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final tabs = [
-      _DashboardTab(snapshot: _snapshot, session: widget.session),
-      _ProjectsTab(projects: _snapshot.projects),
-      _TasksTab(tasks: _snapshot.tasks),
-      _TeamTab(members: _snapshot.members),
-    ];
-
     return Scaffold(
       appBar: AppBar(
         title: Text(['Dashboard', 'Projects', 'Tasks', 'Team'][_currentIndex]),
@@ -94,9 +107,48 @@ class _HomeShellState extends State<HomeShell> {
           ),
         ],
       ),
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 250),
-        child: tabs[_currentIndex],
+      body: FutureBuilder<WorkspaceSnapshot>(
+        future: _snapshotFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (!snapshot.hasData) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Data workspace belum tersedia.'),
+                    const SizedBox(height: 12),
+                    FilledButton(
+                      onPressed: _refresh,
+                      child: const Text('Coba lagi'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          final data = snapshot.data!;
+          final tabs = [
+            _DashboardTab(snapshot: data, session: widget.session),
+            _ProjectsTab(projects: data.projects),
+            _TasksTab(tasks: data.tasks),
+            _TeamTab(members: data.members),
+          ];
+
+          return RefreshIndicator(
+            onRefresh: _refresh,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 250),
+              child: tabs[_currentIndex],
+            ),
+          );
+        },
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,

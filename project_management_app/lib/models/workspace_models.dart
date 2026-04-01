@@ -14,6 +14,15 @@ class DashboardMetric {
   final String value;
   final String delta;
   final int accentHex;
+
+  factory DashboardMetric.fromJson(Map<String, dynamic> json) {
+    return DashboardMetric(
+      label: json['label']?.toString() ?? '-',
+      value: json['value']?.toString() ?? '0',
+      delta: json['delta']?.toString() ?? '-',
+      accentHex: (json['accentHex'] as num?)?.toInt() ?? 0xFF20344A,
+    );
+  }
 }
 
 class ProjectSummary {
@@ -32,6 +41,17 @@ class ProjectSummary {
   final ProjectHealth health;
   final String deadline;
   final int teamSize;
+
+  factory ProjectSummary.fromJson(Map<String, dynamic> json) {
+    return ProjectSummary(
+      name: json['name']?.toString() ?? '-',
+      owner: json['owner']?.toString() ?? '-',
+      progress: (json['progress'] as num?)?.toDouble() ?? 0,
+      health: parseProjectHealth(json['health']?.toString()),
+      deadline: json['deadline']?.toString() ?? '-',
+      teamSize: (json['teamSize'] as num?)?.toInt() ?? 0,
+    );
+  }
 }
 
 class TaskItem {
@@ -50,6 +70,17 @@ class TaskItem {
   final String priority;
   final TaskStage stage;
   final String dueLabel;
+
+  factory TaskItem.fromJson(Map<String, dynamic> json) {
+    return TaskItem(
+      title: json['title']?.toString() ?? '-',
+      project: json['project']?.toString() ?? '-',
+      assignee: json['assignee']?.toString() ?? '-',
+      priority: json['priority']?.toString() ?? 'Medium',
+      stage: parseTaskStage(json['stage']?.toString()),
+      dueLabel: json['dueLabel']?.toString() ?? '-',
+    );
+  }
 }
 
 class TeamMember {
@@ -68,6 +99,17 @@ class TeamMember {
   final double utilization;
   final int activeTasks;
   final String statusLabel;
+
+  factory TeamMember.fromJson(Map<String, dynamic> json) {
+    return TeamMember(
+      name: json['name']?.toString() ?? '-',
+      role: json['role']?.toString() ?? '-',
+      focusProject: json['focusProject']?.toString() ?? '-',
+      utilization: (json['utilization'] as num?)?.toDouble() ?? 0,
+      activeTasks: (json['activeTasks'] as num?)?.toInt() ?? 0,
+      statusLabel: json['statusLabel']?.toString() ?? '-',
+    );
+  }
 }
 
 class WorkspaceSnapshot {
@@ -84,4 +126,59 @@ class WorkspaceSnapshot {
   final List<TaskItem> tasks;
   final List<TeamMember> members;
   final List<String> alerts;
+
+  factory WorkspaceSnapshot.fromJson(Map<String, dynamic> json) {
+    final metrics = (json['metrics'] as List<dynamic>? ?? [])
+        .map((item) => DashboardMetric.fromJson(item as Map<String, dynamic>))
+        .toList();
+    final projects = (json['projects'] as List<dynamic>? ?? [])
+        .map((item) => ProjectSummary.fromJson(item as Map<String, dynamic>))
+        .toList();
+    final tasks = (json['tasks'] as List<dynamic>? ?? [])
+        .map((item) => TaskItem.fromJson(item as Map<String, dynamic>))
+        .toList();
+    final members = (json['members'] as List<dynamic>? ?? [])
+        .map((item) => TeamMember.fromJson(item as Map<String, dynamic>))
+        .toList();
+    final alerts = (json['alerts'] as List<dynamic>? ?? [])
+        .map((item) => item.toString())
+        .toList();
+
+    return WorkspaceSnapshot(
+      metrics: metrics,
+      projects: projects,
+      tasks: tasks,
+      members: members,
+      alerts: alerts,
+    );
+  }
+}
+
+ProjectHealth parseProjectHealth(String? value) {
+  switch (value) {
+    case 'healthy':
+      return ProjectHealth.healthy;
+    case 'atRisk':
+    case 'at_risk':
+      return ProjectHealth.atRisk;
+    case 'blocked':
+      return ProjectHealth.blocked;
+    default:
+      return ProjectHealth.healthy;
+  }
+}
+
+TaskStage parseTaskStage(String? value) {
+  switch (value) {
+    case 'todo':
+      return TaskStage.todo;
+    case 'doing':
+      return TaskStage.doing;
+    case 'review':
+      return TaskStage.review;
+    case 'done':
+      return TaskStage.done;
+    default:
+      return TaskStage.todo;
+  }
 }

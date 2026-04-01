@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\ProfileController;
+use App\Http\Controllers\Api\V1\WorkspaceController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
@@ -21,5 +22,12 @@ Route::prefix('v1')->group(function (): void {
             Route::put('/me', [ProfileController::class, 'update']);
             Route::put('/password', [ProfileController::class, 'updatePassword']);
         });
+    });
+
+    Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function (): void {
+        Route::get('/dashboard', [WorkspaceController::class, 'dashboard']);
+        Route::get('/projects', [WorkspaceController::class, 'projects']);
+        Route::get('/tasks', [WorkspaceController::class, 'tasks']);
+        Route::get('/team-members', [WorkspaceController::class, 'members']);
     });
 });

@@ -31,6 +31,11 @@ class ApiClient {
     return _decode(response);
   }
 
+  Future<Map<String, dynamic>> get(String path) async {
+    final response = await _client.get(_uri(path), headers: _headers);
+    return _decode(response);
+  }
+
   Future<Map<String, dynamic>> postWithoutBody(String path) async {
     final response = await _client.post(_uri(path), headers: _headers);
     return _decode(response);
