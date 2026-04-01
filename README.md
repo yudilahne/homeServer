@@ -2,6 +2,41 @@
 
 Starter project Laravel 13 + Filament 4 yang disiapkan untuk berjalan di Docker dan dideploy ke Ubuntu server di balik Cloudflare dengan domain `yudilahne.my.id`.
 
+## API Flutter
+
+Backend ini sudah menyiapkan API ringan berbasis Laravel Sanctum untuk aplikasi Flutter.
+
+Base URL produksi:
+
+```text
+https://app.yudilahne.my.id/api/v1
+```
+
+Endpoint utama:
+
+- `GET /health`
+- `POST /auth/register`
+- `POST /auth/login`
+- `GET /auth/me`
+- `POST /auth/logout`
+
+Contoh login:
+
+```json
+{
+  "email": "admin@yudilahne.my.id",
+  "password": "your-password",
+  "device_name": "flutter-android"
+}
+```
+
+Response login akan mengembalikan bearer token. Untuk request berikutnya dari Flutter:
+
+```text
+Authorization: Bearer <token>
+Accept: application/json
+```
+
 ## Struktur
 
 - `laravel-app/`: source code Laravel + Filament
