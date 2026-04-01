@@ -18,7 +18,10 @@ Endpoint utama:
 - `POST /auth/register`
 - `POST /auth/login`
 - `GET /auth/me`
+- `PUT /auth/me`
+- `PUT /auth/password`
 - `POST /auth/logout`
+- `POST /auth/logout-all`
 
 Contoh login:
 
@@ -35,6 +38,25 @@ Response login akan mengembalikan bearer token. Untuk request berikutnya dari Fl
 ```text
 Authorization: Bearer <token>
 Accept: application/json
+```
+
+Contoh update profil:
+
+```json
+{
+  "name": "Yudilahne",
+  "email": "yudi@example.com"
+}
+```
+
+Contoh ganti password:
+
+```json
+{
+  "current_password": "Password123",
+  "password": "Password456",
+  "password_confirmation": "Password456"
+}
 ```
 
 ## Struktur

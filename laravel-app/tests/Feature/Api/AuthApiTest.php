@@ -63,6 +63,57 @@ class AuthApiTest extends TestCase
             ->assertJsonPath('message', 'Logout successful');
     }
 
+    public function test_user_can_update_profile_and_password(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'profile@example.com',
+            'password' => 'Password123',
+        ]);
+
+        $token = $user->createToken('profile-test')->plainTextToken;
+
+        $this->withHeader('Authorization', 'Bearer '.$token)
+            ->putJson('/api/v1/auth/me', [
+                'name' => 'Updated Profile',
+                'email' => 'updated@example.com',
+            ])
+            ->assertOk()
+            ->assertJsonPath('message', 'Profile updated successfully')
+            ->assertJsonPath('data.user.email', 'updated@example.com');
+
+        $this->withHeader('Authorization', 'Bearer '.$token)
+            ->putJson('/api/v1/auth/password', [
+                'current_password' => 'Password123',
+                'password' => 'Password456',
+                'password_confirmation' => 'Password456',
+            ])
+            ->assertOk()
+            ->assertJsonPath('message', 'Password updated successfully');
+
+        $this->postJson('/api/v1/auth/login', [
+            'email' => 'updated@example.com',
+            'password' => 'Password456',
+            'device_name' => 'android',
+        ])->assertOk();
+    }
+
+    public function test_user_can_logout_all_devices(): void
+    {
+        $user = User::factory()->create([
+            'password' => 'Password123',
+        ]);
+
+        $firstToken = $user->createToken('android')->plainTextToken;
+        $user->createToken('ios');
+
+        $this->withHeader('Authorization', 'Bearer '.$firstToken)
+            ->postJson('/api/v1/auth/logout-all')
+            ->assertOk()
+            ->assertJsonPath('message', 'Logged out from all devices successfully');
+
+        $this->assertDatabaseCount('personal_access_tokens', 0);
+    }
+
     public function test_health_endpoint_is_available(): void
     {
         $this->getJson('/api/v1/health')

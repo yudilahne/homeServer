@@ -16,7 +16,10 @@ Route::prefix('v1')->group(function (): void {
 
         Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function (): void {
             Route::post('/logout', [AuthController::class, 'logout']);
+            Route::post('/logout-all', [AuthController::class, 'logoutAll']);
             Route::get('/me', [ProfileController::class, 'show']);
+            Route::put('/me', [ProfileController::class, 'update']);
+            Route::put('/password', [ProfileController::class, 'updatePassword']);
         });
     });
 });
