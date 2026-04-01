@@ -1,0 +1,11 @@
+.git
+.DS_Store
+.env
+laravel-app/.env
+laravel-app/node_modules
+laravel-app/vendor
+laravel-app/storage/logs/*
+laravel-app/storage/framework/cache/*
+laravel-app/storage/framework/sessions/*
+laravel-app/storage/framework/views/*
+laravel-app/bootstrap/cache/*.php
